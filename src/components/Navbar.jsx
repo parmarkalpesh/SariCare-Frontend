@@ -124,7 +124,7 @@ export default function Navbar() {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden bg-white border-t border-gray-100 overflow-hidden"
+                        className="md:hidden bg-white border-t border-gray-100 overflow-hidden max-h-[80vh] overflow-y-auto"
                     >
                         <nav className="flex flex-col p-6 gap-4">
                             {user && user.role === 'admin' ? (
