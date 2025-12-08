@@ -69,7 +69,7 @@ export default function Services() {
                 {/* Pricing Table Section */}
                 <div className="mt-24">
                     <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Detailed Pricing</h2>
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-4xl mx-auto">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto max-w-4xl mx-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-gray-50 border-b border-gray-100">
