@@ -178,7 +178,7 @@ export default function AdminDashboard() {
                     {/* Add more stats if needed */}
                 </div>
 
-                <div className="flex gap-4 mb-6 border-b border-gray-200 overflow-x-auto">
+                <div className="flex gap-4 mb-6 border-b border-gray-200">
                     <button
                         onClick={() => setActiveTab('bookings')}
                         className={`pb-2 px-4 font-medium transition-colors relative ${activeTab === 'bookings' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'}`}

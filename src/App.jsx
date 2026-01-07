@@ -6,7 +6,6 @@ import Contact from "./pages/Contact.jsx";
 import Pickup from "./pages/Pickup.jsx";
 import Services from "./pages/Services.jsx";
 
-import ScrollToTop from "./components/ScrollToTop.jsx";
 import { AuthProvider } from "./context/AuthContext";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
@@ -19,7 +18,6 @@ import { AdminRoute, UserRoute, ProtectedRoute } from "./components/RouteGuards.
 export default function App() {
   return (
     <AuthProvider>
-      <ScrollToTop />
       <Routes>
         <Route element={<MainLayout />}>
           {/* Admin Routes */}
