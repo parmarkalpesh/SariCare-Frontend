@@ -48,7 +48,7 @@ export default function Navbar() {
                         />
                     </div>
                     <span className="text-2xl font-serif font-bold text-gray-900 tracking-tight">
-                        Sari<span className="text-primary">Care</span>
+                        Sari0<span className="text-primary">Care</span>
                     </span>
                 </Link>
 
