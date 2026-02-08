@@ -2,7 +2,7 @@ export const SERVICE_LIST = [
     {
         title: "Wash & Fold",
         desc: "Everyday clothes washed, dried, and neatly folded.",
-        price: "₹60/kg",
+        price: "₹60/pc",
     },
     {
         title: "Saree Polishing",

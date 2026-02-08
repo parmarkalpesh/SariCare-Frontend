@@ -24,6 +24,9 @@ export default function Pickup() {
   });
   const [selectedServiceToAdd, setSelectedServiceToAdd] = useState("");
 
+  const selectedServiceNames = formData.items.map(item => item.service);
+
+
   useEffect(() => {
     if (user) {
       setFormData(prev => ({
@@ -33,6 +36,9 @@ export default function Pickup() {
       }));
     }
   }, [user]);
+
+  const today = new Date().toISOString().split("T")[0];
+
 
   const validate = () => {
     const newErrors = {};
@@ -164,7 +170,8 @@ export default function Pickup() {
         <motion.form
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          onSubmit={handleSubmit}
+          onSubmit={
+            handleSubmit}
           className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100"
         >
           <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -211,10 +218,16 @@ export default function Pickup() {
                 className="flex-1 p-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all bg-white"
               >
                 <option value="">-- Choose a Service --</option>
-                {SERVICE_LIST.map((s, i) => (
-                  <option key={i} value={s.title}>{s.title} ({s.price})</option>
-                ))}
+
+                {SERVICE_LIST
+                  .filter(service => !selectedServiceNames.includes(service.title)) // ✅ FILTER
+                  .map((s, i) => (
+                    <option key={i} value={s.title}>
+                      {s.title} ({s.price})
+                    </option>
+                  ))}
               </select>
+
               <button
                 type="button"
                 onClick={handleAddService}
@@ -304,8 +317,11 @@ export default function Pickup() {
                 name="pickupDate"
                 value={formData.pickupDate}
                 onChange={handleChange}
-                className={`w-full p-3 rounded-lg border ${errors.pickupDate ? 'border-red-500' : 'border-gray-200'} focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all`}
+                min={today}   // ✅ disables past dates
+                className={`w-full p-3 rounded-lg border ${errors.pickupDate ? 'border-red-500' : 'border-gray-200'
+                  } focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all`}
               />
+
               {errors.pickupDate && <p className="text-red-500 text-xs">{errors.pickupDate}</p>}
             </div>
             <div className="space-y-2">
