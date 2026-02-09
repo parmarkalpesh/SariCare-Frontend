@@ -3,6 +3,8 @@ import AuthContext from '../context/AuthContext';
 import API_URL from '../config';
 
 import { Users, Calendar, CheckCircle, Clock, AlertCircle, Send, IndianRupee, Search, MessageSquare } from 'lucide-react';
+import { SERVICE_LIST } from '../constants/services';
+import toast from 'react-hot-toast';
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState({ userCount: 0, bookingCount: 0, statusCounts: {} });
@@ -17,39 +19,47 @@ export default function AdminDashboard() {
     const [reportForm, setReportForm] = useState({ condition: 'Good', notes: '', recommendation: '' });
     const { token } = useContext(AuthContext);
 
+    const fetchAdminData = async () => {
+        try {
+            const headers = { Authorization: `Bearer ${token}` };
+
+            const statsRes = await fetch(`${API_URL}/admin/stats`, { headers });
+            const statsData = await statsRes.json();
+            setStats(statsData);
+
+            const bookingsRes = await fetch(`${API_URL}/admin/bookings`, { headers });
+            const bookingsData = await bookingsRes.json();
+            setBookings(bookingsData);
+
+            const contactsRes = await fetch(`${API_URL}/admin/contacts`, { headers });
+            const contactsData = await contactsRes.json();
+            setContacts(contactsData);
+
+            const usersRes = await fetch(`${API_URL}/admin/users`, { headers });
+            const usersData = await usersRes.json();
+            setUsers(usersData);
+        } catch (error) {
+            console.error('Error fetching admin data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const headers = { Authorization: `Bearer ${token}` };
-
-                const statsRes = await fetch(`${API_URL}/admin/stats`, { headers });
-                const statsData = await statsRes.json();
-                setStats(statsData);
-
-                const bookingsRes = await fetch(`${API_URL}/admin/bookings`, { headers });
-                const bookingsData = await bookingsRes.json();
-                setBookings(bookingsData);
-
-                const contactsRes = await fetch(`${API_URL}/admin/contacts`, { headers });
-                const contactsData = await contactsRes.json();
-                setContacts(contactsData);
-
-                const usersRes = await fetch(`${API_URL}/admin/users`, { headers });
-                const usersData = await usersRes.json();
-                setUsers(usersData);
-            } catch (error) {
-                console.error('Error fetching admin data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (token) {
-            fetchData();
+            fetchAdminData();
         }
     }, [token]);
 
     const updateStatus = async (id, newStatus) => {
+        const booking = bookings.find(b => b._id === id);
+        if (!booking) return;
+
+        const calculatedTotal = (booking.items || []).reduce((acc, item) => {
+            const service = SERVICE_LIST.find(s => s.title === item.service);
+            return acc + (service?.priceVal || 0) * (item.quantity || 0);
+        }, 0);
+
         try {
             const response = await fetch(`${API_URL}/admin/bookings/${id}/status`, {
                 method: 'PUT',
@@ -57,14 +67,19 @@ export default function AdminDashboard() {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify({ status: newStatus, totalAmount: calculatedTotal })
             });
 
             if (response.ok) {
-                setBookings(bookings.map(b => b._id === id ? { ...b, status: newStatus } : b));
+                setBookings(bookings.map(b => b._id === id ? { ...b, status: newStatus, totalAmount: calculatedTotal } : b));
+                toast.success(`Status updated to ${newStatus}`);
+            } else {
+                const data = await response.json();
+                toast.error(data.message || 'Failed to update status');
             }
         } catch (error) {
             console.error('Error updating status:', error);
+            toast.error('Connection error while updating status');
         }
     };
 
@@ -105,6 +120,7 @@ export default function AdminDashboard() {
             console.error('Error updating contact status:', error);
         }
     };
+
 
     const submitHealthReport = async () => {
         try {
@@ -249,10 +265,25 @@ export default function AdminDashboard() {
                                             </td>
                                             <td className="p-4 text-sm text-gray-700">
                                                 {booking.items && booking.items.length > 0 ? (
-                                                    <ul className="list-disc list-inside text-xs">
-                                                        {booking.items.map((item, i) => (
-                                                            <li key={i}><span className="font-medium">{item.service}</span> <span className="text-gray-500">x{item.quantity}</span></li>
-                                                        ))}
+                                                    <ul className="space-y-1">
+                                                        {booking.items.map((item, i) => {
+                                                            const service = SERVICE_LIST.find(s => s.title === item.service);
+                                                            const unitPrice = service?.priceVal || 0;
+                                                            const subtotal = unitPrice * item.quantity;
+                                                            return (
+                                                                <li key={i} className="text-xs">
+                                                                    <div className="flex justify-between gap-2">
+                                                                        <span className="font-medium text-gray-900">{item.service}</span>
+                                                                        <span className="text-gray-500">x{item.quantity}</span>
+                                                                    </div>
+                                                                    {unitPrice > 0 && (
+                                                                        <div className="text-[10px] text-gray-400">
+                                                                            ₹{unitPrice} = ₹{subtotal}
+                                                                        </div>
+                                                                    )}
+                                                                </li>
+                                                            );
+                                                        })}
                                                     </ul>
                                                 ) : (
                                                     <span className="text-gray-400 italic">No services</span>
@@ -271,15 +302,20 @@ export default function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td className="p-4">
-                                                <div className="flex items-center gap-1">
-                                                    <IndianRupee size={14} className="text-gray-400" />
-                                                    <input
-                                                        type="number"
-                                                        value={booking.totalAmount || ''}
-                                                        onChange={(e) => handleAmountChange(booking._id, e.target.value)}
-                                                        placeholder="0"
-                                                        className="w-20 p-1 border border-gray-200 rounded text-sm focus:outline-none focus:border-primary"
-                                                    />
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-1">
+                                                        <IndianRupee size={14} className="text-gray-400" />
+                                                        <input
+                                                            type="number"
+                                                            value={booking.totalAmount || booking.items.reduce((acc, item) => {
+                                                                const service = SERVICE_LIST.find(s => s.title === item.service);
+                                                                return acc + (service?.priceVal || 0) * (item.quantity || 0);
+                                                            }, 0) || ''}
+                                                            readOnly
+                                                            placeholder="0"
+                                                            className="w-20 p-1 border border-gray-200 rounded text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="p-4">
@@ -290,7 +326,7 @@ export default function AdminDashboard() {
                                                         onChange={(e) => updateStatus(booking._id, e.target.value)}
                                                     >
                                                         <option value="Pending">Pending</option>
-                                                        <option value="Working">Working</option>
+                                                        <option value="Confirmed">Confirmed</option>
                                                         <option value="Completed">Completed</option>
                                                         <option value="Cancelled">Cancelled</option>
                                                     </select>

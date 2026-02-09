@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, User, Phone, CheckCircle, Package, Plus, Trash2, Minus } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Phone, CheckCircle, Package, Plus, Trash2, Minus, IndianRupee } from "lucide-react";
 import { SERVICE_LIST } from "../constants/services";
 import API_URL from "../config";
 import AuthContext from "../context/AuthContext";
@@ -21,6 +21,7 @@ export default function Pickup() {
     pickupDate: "",
     preferredTime: "Morning (9 AM - 12 PM)",
     items: location.state?.service ? [{ service: location.state.service, quantity: 1 }] : [],
+    totalAmount: 0,
   });
   const [selectedServiceToAdd, setSelectedServiceToAdd] = useState("");
 
@@ -36,6 +37,14 @@ export default function Pickup() {
       }));
     }
   }, [user]);
+
+  useEffect(() => {
+    const total = formData.items.reduce((acc, item) => {
+      const service = SERVICE_LIST.find(s => s.title === item.service);
+      return acc + (service?.priceVal || 0) * (item.quantity || 0);
+    }, 0);
+    setFormData(prev => ({ ...prev, totalAmount: total }));
+  }, [formData.items]);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -289,6 +298,15 @@ export default function Pickup() {
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+
+          {formData.totalAmount > 0 && (
+            <div className="mb-6 p-4 bg-primary/5 rounded-xl border border-primary/10 flex justify-between items-center text-primary">
+              <span className="font-semibold flex items-center gap-2">
+                <IndianRupee size={18} /> Estimated Total
+              </span>
+              <span className="text-xl font-bold">₹{formData.totalAmount}</span>
             </div>
           )}
 

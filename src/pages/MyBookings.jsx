@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 import API_URL from '../config';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, MapPin, Package } from 'lucide-react';
+import { Calendar, Clock, MapPin, Package, IndianRupee } from 'lucide-react';
 
 export default function MyBookings() {
     const [bookings, setBookings] = useState([]);
@@ -64,7 +64,14 @@ export default function MyBookings() {
                                             </span>
                                             <span>#{booking._id.slice(-6).toUpperCase()}</span>
                                         </div>
-                                        <h3 className="text-xl font-bold text-gray-900 mb-2">{booking.name}</h3>
+                                        <div className="flex justify-between items-start">
+                                            <h3 className="text-xl font-bold text-gray-900 mb-2">{booking.name}</h3>
+                                            {booking.totalAmount > 0 && (
+                                                <div className="flex items-center gap-1 text-primary font-bold text-lg bg-primary/5 px-3 py-1 rounded-lg">
+                                                    <IndianRupee size={16} /> {booking.totalAmount}
+                                                </div>
+                                            )}
+                                        </div>
                                         <div className="space-y-1 text-gray-600">
                                             <div className="flex items-center gap-2">
                                                 <MapPin size={16} /> {booking.address}
@@ -92,8 +99,8 @@ export default function MyBookings() {
                                             <div className="bg-white/60 p-3 rounded-lg backdrop-blur-sm">
                                                 <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Condition</p>
                                                 <p className={`font-bold ${booking.healthReport.condition === 'Excellent' ? 'text-green-600' :
-                                                        booking.healthReport.condition === 'Good' ? 'text-blue-600' :
-                                                            'text-amber-600'
+                                                    booking.healthReport.condition === 'Good' ? 'text-blue-600' :
+                                                        'text-amber-600'
                                                     }`}>{booking.healthReport.condition}</p>
                                             </div>
                                             <div className="bg-white/60 p-3 rounded-lg backdrop-blur-sm">
